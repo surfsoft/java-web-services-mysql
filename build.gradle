@@ -1,0 +1,91 @@
+/**
+ * Copyright 2019 Phil Haigh
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
+plugins {
+    id 'java'
+    id 'maven'
+    id 'org.springframework.boot' version '2.1.6.RELEASE'
+    id 'org.owasp.dependencycheck' version '3.3.0'
+    id "com.palantir.docker" version "0.22.1"
+}
+
+group = 'com.surfsoftconsulting.template'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+def springBootVersion = "2.1.6.RELEASE"
+def commonsLang3Version = "3.6"
+def commonsIoVersion = "2.5"
+def logbackCoreVersion = "1.2.3"
+def jclOverSlf4jVersion = "1.7.25"
+def mysqlDriverVersion = "8.0.18"
+
+def junitVersion = "5.0.0"
+def jsonPathVersion = "2.2.0"
+def hamcrestVersion = "1.3"
+def guavaVersion = "23.1-jre"
+//def h2Version = "1.4.200"
+
+repositories {
+    maven { url "http://repo.maven.apache.org/maven2" }
+}
+
+dependencies {
+
+    compile "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
+    compile "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
+    compile "org.apache.commons:commons-lang3:${commonsLang3Version}"
+    compile "commons-io:commons-io:${commonsIoVersion}"
+    compile "ch.qos.logback:logback-core:${logbackCoreVersion}"
+    compile "org.slf4j:jcl-over-slf4j:${jclOverSlf4jVersion}"
+
+    runtime "mysql:mysql-connector-java:${mysqlDriverVersion}"
+
+    testCompile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}") {
+        exclude(module: 'commons-logging')
+    }
+    testCompile "com.jayway.jsonpath:json-path:${jsonPathVersion}"
+    testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
+    testCompile "com.google.guava:guava:${guavaVersion}"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+
+}
+
+test {
+    useJUnitPlatform()
+}
+
+dependencyCheck {
+    suppressionFile = 'gradle/dependency-check-suppression.xml'
+}
+
+task unpack(type: Copy) {
+    dependsOn bootJar
+    from(zipTree(tasks.bootJar.outputs.files.singleFile))
+    into("build/dependency")
+}
+
+docker {
+    name "${dockerOrg}/${rootProject.name}"
+    tag "${dockerRegistry}", "${dockerOrg}/${rootProject.name}:${version}"
+    copySpec.from(tasks.unpack.outputs).into("dependency")
+    buildArgs(['DEPENDENCY': "dependency"])
+}
