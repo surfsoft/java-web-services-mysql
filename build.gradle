@@ -41,7 +41,8 @@ def guavaVersion = "23.1-jre"
 //def h2Version = "1.4.200"
 
 repositories {
-    maven { url "http://repo.maven.apache.org/maven2" }
+    jcenter()
+    mavenCentral()
 }
 
 dependencies {
