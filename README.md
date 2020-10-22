@@ -42,7 +42,7 @@ If you don't want to install MySQL locally you can use a docker instance as foll
 ```
 docker run --name mysql -p 3306:3306 -v /data/mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=mysqlpass -d mysql:8.0
 ```
-(you'll need to create /data/mysql to the docker file sharing options fist and make sure it is writeable for you)
+(you'll need to create /data/mysql and add it to the docker file sharing options first - and make sure it is writeable for you)
 
 ## Building and running a Docker container
 
